@@ -1,0 +1,39 @@
+{
+    "name": "epiecs/fibermap",
+    "description": "Autogen fiber maps and docs based off a yaml and csv file",
+    "keywords": ["fiber", "jointjs", "autogen"],
+    "homepage": "http://github.com/epiecs/fibermap",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gregory Bers",
+            "email": "gregorybers@epiecs.be",
+            "homepage": "https://github.com/epiecs"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "slim/slim": "^3.1",
+        "slim/php-view": "^2.0",
+        "monolog/monolog": "^1.17",
+        "symfony/yaml": "^4.1",
+        "phpoffice/phpspreadsheet": "^1.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=4.8 < 6.0",
+        "kint-php/kint": "^3.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "process-timeout" : 0
+    },
+    "scripts": {
+        "start": "php -S localhost:8080 -t public",
+        "test": "phpunit"
+    }
+
+}
