@@ -1,6 +1,9 @@
 <?php echo $this->fetch("_elements/header.phtml", []); ?>
 
-<h1>test</h1>
+<div id="diagram">Loading</div>
 
 <?php echo $this->fetch("_elements/footer.phtml", [
+    "scripts" => [
+        'diagram_top'
+    ]
 ]); ?>

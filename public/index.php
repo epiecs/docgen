@@ -24,7 +24,10 @@ require __DIR__ . '/../src/dependencies.php';
 require __DIR__ . '/../src/middleware.php';
 
 // Register routes
-require __DIR__ . '/../routes/data.php';
+require __DIR__ . '/../routes/racks.php';
+require __DIR__ . '/../routes/connections.php';
+require __DIR__ . '/../routes/diagrams.php';
+require __DIR__ . '/../routes/main.php';
 
 // Run app
 $app->run();
