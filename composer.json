@@ -3,7 +3,7 @@
     "description": "Autogen fiber maps and docs based off a yaml and csv file",
     "keywords": ["fiber", "jointjs", "autogen"],
     "homepage": "http://github.com/epiecs/fibermap",
-    "license": "MIT",
+    "license": "GNU GPLv3",
     "authors": [
         {
             "name": "Gregory Bers",

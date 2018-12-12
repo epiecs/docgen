@@ -1,0 +1,2 @@
+location, panel_from, patchpoint_from, panel_to, patchpoint_to, description
+B_EAST, 1, 4, 2, 6, "Fiber to RND"
