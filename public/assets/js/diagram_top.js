@@ -1,9 +1,9 @@
 const markup = {
     'grid': {
-        'offsetX' : 100,
-        'offsetY' : 100,
-        'width'   : 1800,
-        'height'  : 900,
+        'offsetX' : 0,
+        'offsetY' : 0,
+        'width'   : window.innerWidth - 20,
+        'height'  : window.innerHeight,
         'gridSize': 10
     },
     'racks'       : {
@@ -31,6 +31,8 @@ var racks = [];
 var connections = [];
 var rawRacks = [];
 var rawConnections = [];
+
+var rackOffset = 0;
 
 const allowedDirections = [
     'top', 'left', 'right', 'bottom', //'Topleft', 'Topright', 'Bottomleft', 'Bottomright'
@@ -74,13 +76,13 @@ var diagram = new joint.dia.Paper({
 });
 
 var svgZoom = svgPanZoom('#diagram svg', {
-  center: false,
-  zoomEnabled: true,
-  panEnabled: true,
-  controlIconsEnabled: true,
-  fit: false,
-  minZoom: 0.7,
-  maxZoom:4,
+  center              : false,
+  zoomEnabled         : true,
+  panEnabled          : true,
+  controlIconsEnabled : true,
+  fit                 : false,
+  minZoom             : 1,
+  maxZoom             : 4,
   zoomScaleSensitivity: 0.5
 });
 
@@ -108,7 +110,7 @@ function getSide(angle)
 function placeRack(name, rack)
 {
     racks[name] = new joint.shapes.standard.Rectangle({
-        position: { x: rack.x * 50, y: rack.y * 50 },
+        position: { x: rack.x * rackOffset, y: rack.y * rackOffset },
         size: { width: markup.racks.width, height: markup.racks.height },
         attrs: {
             body: {
@@ -277,6 +279,22 @@ Promise.all([racksRequest,connectionsRequest])
         rawRacks       = values[0];
         rawConnections = values[1];
 
+        let maxX = 0;
+        let maxY = 0;
+
+        // First we loop all racks and get the max X and Y value so we can adjust scaling
+        Object.entries(rawRacks).forEach((rack) => {
+            const [name, data] = rack;
+
+            maxX = data.x > maxX ? data.x : maxX;
+            maxY = data.y > maxY ? data.y : maxY;
+        });
+
+        let xScaling = Math.round(markup.grid.width / maxX);
+        let yScaling = Math.round(markup.grid.height / maxY);
+
+        rackOffset = xScaling > yScaling ? xScaling - 5: yScaling - 5;
+
         // Add racks to the diagram
         Object.entries(rawRacks).forEach((rack) => {
             const [name, data] = rack;
@@ -335,21 +353,23 @@ diagram.on('cell:mouseleave', function(cellView) {
 
 diagram.on('cell:pointerdown', function(cellView) {
 
-    diagram.findViewsInArea(diagram.getArea()).forEach(cellView => {
-        cellView.unhighlight();
-    });
-
     if(cellView.model.attributes.type == 'standard.Rectangle'){
+
+        diagram.findViewsInArea(diagram.getArea()).forEach(cellView => {
+            cellView.unhighlight();
+        });
+
         cellView.highlight();
+
+        graph.getLinks().forEach((link) => {
+            link.attr("./display", "none");
+        });
+
+        graph.getConnectedLinks(cellView.model).forEach((link) => {
+            link.attr("./display", "");
+        });
     }
 
-    graph.getLinks().forEach((link) => {
-        link.attr("./display", "none");
-    });
-
-    graph.getConnectedLinks(cellView.model).forEach((link) => {
-        link.attr("./display", "");
-    });
 });
 
 diagram.on('blank:pointerdown', function() {

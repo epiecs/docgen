@@ -9,8 +9,8 @@ $app->group('/racks', function () {
 
     $this->get('[/{id}]', function ($request, $response, $args) {
 
-        // TODO: FIlter rack output, raks and connected racks based of id
-
+        // s($args);
+        // exit;
 
         $infrastructure = Yaml::parseFile($this->get('settings')['paths']['data'] . "fiber.yml");
 
