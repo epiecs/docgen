@@ -9,9 +9,27 @@ $app->group('/connections', function () {
 
     $this->get('[/{id}]', function ($request, $response, $args) {
 
-        // TODO: sort gebaseerd naargelang rack id
-
         $infrastructure = Yaml::parseFile($this->get('settings')['paths']['data'] . "fiber.yml");
+
+        $rackFilter = [];
+
+        if(isset($args['id']))
+        {
+            $rackFilter[] = $args['id'];
+
+            foreach ($infrastructure['racks'][$args['id']]['panels'] as $panel) {
+                foreach (array_keys($panel) as $id)
+                {
+                    if(!in_array($id, $rackFilter))
+                    {
+                        $rackFilter[] = $id;
+                    }
+                }
+            }
+
+            $infrastructure['racks'] = array_intersect_key($infrastructure['racks'], array_flip($rackFilter));
+        }
+
 
         // Generate the list with connections, for every connection check if both points are
         // defined. if not we do not register the connection

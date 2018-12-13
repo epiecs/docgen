@@ -1,6 +1,19 @@
 <?php echo $this->fetch("_elements/header.phtml", []); ?>
 
-<div id="diagram">Loading</div>
+<div id="topform" class="row">
+    <form class="form-inline">
+        <div class="form-group">
+            <label for="exampleFormControlSelect2" class="col-form-label col-form-label-sm">Filter racks &nbsp;</label>
+            <div class="">
+                <select class="form-control form-control-sm" id="selectRack">
+                    <option value="">All racks</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="diagram" class="row">Loading</div>
 
 <?php echo $this->fetch("_elements/footer.phtml", [
     "scripts" => [

@@ -1,26 +1,29 @@
 const markup = {
-    'grid': {
+    'grid' : {
         'offsetX' : 0,
         'offsetY' : 0,
         'width'   : window.innerWidth - 20,
-        'height'  : window.innerHeight,
+        'height'  : window.innerHeight - document.getElementById('topform').scrollHeight,
         'gridSize': 10
     },
-    'racks'       : {
+    'connectors' : {
+        'jump'    : 'gap' //arc, cubic, gap
+    },
+    'racks' : {
         'height'  : 20,
         'width'   : 20,
         'text'    : '#f0f0f0',
         'bg'      : '#444444',
         'edge'    : '#fe8550',
     },
-    'tooltips'       : {
+    'tooltips' : {
         'height'  : 20,
         'width'   : 100,
         'text'    : '#f0f0f0',
         'bg'      : '#444444',
         'edge'    : '#d62424',
     },
-    'fibercount'  : {
+    'fibercount' : {
         'text'    : '#f0f0f0',
         'bg'      : '#000000',
         'edge'    : '#228ff4',
@@ -70,7 +73,7 @@ var diagram = new joint.dia.Paper({
         name: 'jumpover',
         args: {
             size  : 3,
-            jump: 'gap' //arc, cubic, gap
+            jump: markup.connectors.jump
         }
     }
 });
@@ -79,7 +82,7 @@ var svgZoom = svgPanZoom('#diagram svg', {
   center              : false,
   zoomEnabled         : true,
   panEnabled          : true,
-  controlIconsEnabled : true,
+  controlIconsEnabled : false,
   fit                 : false,
   minZoom             : 1,
   maxZoom             : 4,
@@ -193,7 +196,6 @@ function connectRack(source, fibers)
             markup: '<rect width="0" height="0" fill="blue"/>'
         });
 
-        //console.log(sourcePort);
         let sourcePort = racks[source].attributes.ports.items[racks[source].attributes.ports.items.length - 1];
         let destinationPort = racks[destination].attributes.ports.items[racks[destination].attributes.ports.items.length - 1];
 
@@ -266,18 +268,32 @@ function connectRack(source, fibers)
     Request rack data
  */
 
-const racksRequest = fetch(`${window.location.origin}/racks`).then(function(response){
-         return response.json()
-});
+function loadDiagram(){
 
-const connectionsRequest = fetch(`${window.location.origin}/connections`).then(function(response){
-         return response.json()
-});
+    let selectedRack = '';
 
-Promise.all([racksRequest,connectionsRequest])
+    if(window.location.hash.split('#')[1] != null)
+    {
+        selectedRack = '/' + window.location.hash.split('#')[1];
+    }
+
+    const fullRacksRequest = fetch(`${window.location.origin}/racks`).then(function(response){
+        return response.json()
+    });
+
+    const racksRequest = fetch(`${window.location.origin}/racks${selectedRack}`).then(function(response){
+        return response.json()
+    });
+
+    const connectionsRequest = fetch(`${window.location.origin}/connections${selectedRack}`).then(function(response){
+        return response.json()
+    });
+
+    Promise.all([fullRacksRequest, racksRequest, connectionsRequest])
     .then(function(values) {
-        rawRacks       = values[0];
-        rawConnections = values[1];
+        fullRawRacks   = values[0];
+        rawRacks       = values[1];
+        rawConnections = values[2];
 
         let maxX = 0;
         let maxY = 0;
@@ -293,12 +309,29 @@ Promise.all([racksRequest,connectionsRequest])
         let xScaling = Math.round(markup.grid.width / maxX);
         let yScaling = Math.round(markup.grid.height / maxY);
 
-        rackOffset = xScaling > yScaling ? xScaling - 5: yScaling - 5;
+        rackOffset = xScaling > yScaling ? yScaling - 5 : xScaling - 5;
 
         // Add racks to the diagram
         Object.entries(rawRacks).forEach((rack) => {
             const [name, data] = rack;
             placeRack(name, data);
+        });
+
+        Object.entries(fullRawRacks).forEach((rack) => {
+            const [name, data] = rack;
+
+            //Add racks to the select
+            let option = document.createElement("option");
+
+            option.value = name;
+            option.text = `${name} - ${data.description}`;
+
+            if('/' + name == selectedRack)
+            {
+                option.selected = 'selected';
+            }
+
+            document.getElementById('selectRack').add(option);
         });
 
         // Add connections to the diagram
@@ -312,6 +345,16 @@ Promise.all([racksRequest,connectionsRequest])
     .catch(function(error) {
         console.log(error);
     });
+}
+
+
+loadDiagram();
+
+$('#selectRack').on('change', function(event) {
+    history.pushState({}, $(this).find("option:selected").text(), `#${$(this).val()}`);
+    graph.clear();
+    loadDiagram();
+});
 
 diagram.on('cell:mouseover', function(cellView) {
 
@@ -369,7 +412,6 @@ diagram.on('cell:pointerdown', function(cellView) {
             link.attr("./display", "");
         });
     }
-
 });
 
 diagram.on('blank:pointerdown', function() {
@@ -385,4 +427,4 @@ diagram.on('blank:pointerdown', function() {
 
 diagram.on('all', function(evt, x, y) {
     //console.log("All events", evt, x, y);
-})
+});
