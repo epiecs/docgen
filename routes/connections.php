@@ -48,19 +48,18 @@ $app->group('/connections', function () {
         }
 
         // loop all connectors and build an array containing connections in one direction
-        // direction doesnt matter as long as the count is accurate. This way we can build
-        // our joints
+        // we build connections in both directions
+        //
         $connections = array();
-
 
         foreach($connectorCount as $sourceLocation => $connection)
         {
             foreach($connection as $destinationLocation => $connectors)
             {
-                // only add the connection if it does not already exist in the other direction
                 // only add the connection if the connection has both endpoints defined. since we
                 // looped our yaml file we need only check if our location is defined in the yaml
-                if(!isset($connections[$destinationLocation][$sourceLocation]) && isset($infrastructure['racks'][$destinationLocation]))
+
+                if(isset($infrastructure['racks'][$destinationLocation]))
                 {
                     $connections[$sourceLocation][$destinationLocation] = [
                         'fibers'      => $connectors * 2,

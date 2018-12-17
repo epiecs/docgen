@@ -2,8 +2,8 @@ const markup = {
     'grid' : {
         'offsetX' : 0,
         'offsetY' : 0,
-        'width'   : window.innerWidth - 20,
-        'height'  : window.innerHeight - document.getElementById('topform').scrollHeight,
+        'width'   : $(window).width() - $(".sidebar").width() - 30,
+        'height'  : $(window).height() - $(".navbar").height()  - $(".title").height() - 80,
         'gridSize': 10
     },
     'connectors' : {
@@ -82,7 +82,7 @@ var svgZoom = svgPanZoom('#diagram svg', {
   center              : false,
   zoomEnabled         : true,
   panEnabled          : true,
-  controlIconsEnabled : false,
+  controlIconsEnabled : true,
   fit                 : false,
   minZoom             : 1,
   maxZoom             : 4,
@@ -163,6 +163,37 @@ function placeRack(name, rack)
     graph.addCells([racks[name]]);
 }
 
+
+
+function placePorts(source, fibers)
+{
+    let portList = {};
+
+    Object.entries(fibers).forEach((destinationData) => {
+        const [destination, data] = destinationData;
+
+        let angle = Math.round(Math.atan2(racks[destination].attributes.position.y - racks[source].attributes.position.y, racks[destination].attributes.position.x - racks[source].attributes.position.x) * 180 / Math.PI + 180);
+
+        //make sure that we dont overwrite an existing angle
+        while(portList.hasOwnProperty(angle))
+        {
+            angle++;
+        }
+
+        portList[angle] = destination;
+    });
+
+    Object.entries(portList).forEach((port) => {
+        const [angle, destination] = port;
+
+        racks[source].addPort({
+            id    : destination,
+            group : getSide(angle),
+            markup: '<rect width="0" height="0" fill="red"/>'
+        });
+    });
+}
+
 function connectRack(source, fibers)
 {
     Object.entries(fibers).forEach((destinationData) => {
@@ -177,36 +208,14 @@ function connectRack(source, fibers)
 
         */
 
-        var sourceAngle = Math.atan2(racks[destination].attributes.position.y - racks[source].attributes.position.y, racks[destination].attributes.position.x - racks[source].attributes.position.x) * 180 / Math.PI + 180
-        var destinationAngle = Math.atan2(racks[source].attributes.position.y - racks[destination].attributes.position.y, racks[source].attributes.position.x - racks[destination].attributes.position.x) * 180 / Math.PI + 180
-
-        let sourceSide = getSide(sourceAngle);
-        let destinationSide = getSide(destinationAngle);
-
-        racks[source].addPort({
-            group: sourceSide,
-            //markup: '<rect width="2" height="2" fill="red"/>'
-            markup: '<rect width="0" height="0" fill="red"/>'
-
-        });
-
-        racks[destination].addPort({
-            group: destinationSide,
-            //markup: '<rect width="2" height="2" fill="blue"/>'
-            markup: '<rect width="0" height="0" fill="blue"/>'
-        });
-
-        let sourcePort = racks[source].attributes.ports.items[racks[source].attributes.ports.items.length - 1];
-        let destinationPort = racks[destination].attributes.ports.items[racks[destination].attributes.ports.items.length - 1];
-
         connections[source] = new joint.shapes.standard.Link({
             source: {
                 id: racks[source].id,
-                port: sourcePort.id
+                port: destination
             },
             target: {
                 id: racks[destination].id,
-                port: destinationPort.id
+                port: source
             },
             attrs: {
                 line: {
@@ -334,13 +343,31 @@ function loadDiagram(){
             document.getElementById('selectRack').add(option);
         });
 
+        // Place the ports on each rack, sorted by angle
+        Object.entries(rawConnections).forEach((connection) => {
+            const [name, data] = connection;
+            placePorts(name, data);
+        });
+
+        // Filter out duplicate connections before we start connecting
+        Object.entries(rawConnections).forEach((connection) => {
+            const [source, srcData] = connection;
+
+            Object.entries(srcData).forEach((destinationData) => {
+                const [destination, dstData] = destinationData;
+
+                if(rawConnections[destination].hasOwnProperty(source))
+                {
+                    delete rawConnections[destination][source];
+                }
+            });
+        });
+
         // Add connections to the diagram
         Object.entries(rawConnections).forEach((connection) => {
             const [name, data] = connection;
             connectRack(name, data);
         });
-
-        // Remove arrow pointers from links
     })
     .catch(function(error) {
         console.log(error);
