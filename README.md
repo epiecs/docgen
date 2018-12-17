@@ -1,4 +1,4 @@
-# Fibermap
+# Docgen
 
 A quick and dirty tool to visualize fiber optic panels and connections
 
