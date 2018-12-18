@@ -12,7 +12,9 @@
 
     <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
     <script>
-        feather.replace()
+        feather.replace();
+
+        $(`.nav-link[href='${window.location.pathname}']`).addClass("active");
     </script>
 
     <?php
