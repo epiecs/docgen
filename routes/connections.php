@@ -40,9 +40,12 @@ $app->group('/connections', function () {
             //loop all panels first and make a total count of all fibers
             foreach($rack['panels'] as $panel)
             {
-                foreach($panel as $panelLocation => $patchPoints)
+                if(is_array($panel) && count($panel) > 0)
                 {
-                    $connectorCount[$location][$panelLocation] = isset($connectorCount[$location][$panelLocation]) ? $connectorCount[$location][$panelLocation] + count($patchPoints) : count($patchPoints);
+                    foreach($panel as $panelLocation => $patchPoints)
+                    {
+                        $connectorCount[$location][$panelLocation] = isset($connectorCount[$location][$panelLocation]) ? $connectorCount[$location][$panelLocation] + count($patchPoints) : count($patchPoints);
+                    }
                 }
             }
         }

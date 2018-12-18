@@ -40,7 +40,7 @@ $app->group('/racks', function () {
             //loop all panels first and make a total count of all fibers
             foreach($rack['panels'] as $panel)
             {
-                if(count($panel) > 0)
+                if(is_array($panel) && count($panel) > 0)
                 {
                     foreach($panel as $panelLocation => $patchPoints)
                     {
